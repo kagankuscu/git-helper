@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"git-helper/config"
 	"os/exec"
 
 	"github.com/spf13/cobra"
@@ -25,7 +24,7 @@ func init() {
 }
 
 func handleSync() {
-    err := exec.Command("git", "pull", config.LoadConfig().Remote, config.LoadConfig().DefaultBranch).Run()
+    err := exec.Command("git", "pull").Run()
     if err != nil {
         fmt.Println("There is no tracking information for the current branch.")
         return
@@ -33,7 +32,7 @@ func handleSync() {
 
     out, err1 := exec.Command("git", "push").CombinedOutput()
     if err1 != nil {
-        fmt.Println("There is no tracking information for the current branch.")
+        fmt.Print(string(out))
         return
     }
     fmt.Print(string(out))
