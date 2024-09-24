@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"git-helper/config"
 	"os/exec"
 	"strings"
 
@@ -57,8 +58,10 @@ func handleLog() {
 
         branchName := strings.TrimSpace(string(out))
 
-        logOut, _ := exec.Command("git", "log", fmt.Sprintf("%s..HEAD", branchName)).CombinedOutput()
-        fmt.Print(string(logOut))
+        logOut, _ := exec.Command("git", "log", fmt.Sprintf("%s/%s..HEAD", config.LoadConfig().Remote, branchName)).CombinedOutput()
+
+        lines := strings.Split(string(logOut), "\n")
+        print(lines)
     } else {
         out, err := exec.Command("git", "log").Output()
         if err != nil {
@@ -67,12 +70,16 @@ func handleLog() {
         }
 
         lines := strings.Split(string(out), "\n")
-        for i, line := range lines {
-            if i == 0 || i % 6 == 0{
-                color.Yellow(line)
-                continue
-            }
-            fmt.Println(line)
+        print(lines)
+    }
+}
+
+func print(lines []string) {
+    for i, line := range lines {
+        if i == 0 || i % 6 == 0{
+            color.Yellow(line)
+            continue
         }
+        fmt.Println(line)
     }
 }
