@@ -17,7 +17,7 @@ var configCmd = &cobra.Command{
     Args: cobra.ExactArgs(2),
 	Run: func(cmd *cobra.Command, args []string) {
         key := args[0]
-        value := args[0]
+        value := args[1]
         config.UpdateConfig(key, value)
 	},
 }

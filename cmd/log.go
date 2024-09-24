@@ -14,6 +14,7 @@ import (
 
 var (
     oneline bool
+    commits bool
 )
 
 // logCmd represents the log command
@@ -27,6 +28,7 @@ var logCmd = &cobra.Command{
 
 func init() {
 	logCmd.Flags().BoolVarP(&oneline, "oneline", "o", false, "Show single line of log")
+	logCmd.Flags().BoolVarP(&commits, "commits", "c", false, "Show commits that have not been pushed yet")
 	rootCmd.AddCommand(logCmd)
 }
 
@@ -46,6 +48,17 @@ func handleLog() {
             splLine := strings.Split(string(line), "-")
             fmt.Printf("%s - %s, %s : %s\n", yellow(splLine[0]), green(splLine[1]), cyan(splLine[2]), splLine[3])
         }
+    } else if commits {
+        out, err := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD").Output()
+        if err != nil {
+            fmt.Println("Error reading current branch: ", err)
+            return
+        }
+
+        branchName := strings.TrimSpace(string(out))
+
+        logOut, _ := exec.Command("git", "log", fmt.Sprintf("%s..HEAD", branchName)).CombinedOutput()
+        fmt.Print(string(logOut))
     } else {
         out, err := exec.Command("git", "log").Output()
         if err != nil {
