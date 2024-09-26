@@ -53,12 +53,12 @@ func handleCommit() {
         os.Exit(1)
     }
 
+    out, _ := exec.Command("git", "commit", "-m", message).Output()
+    fmt.Print(string(out))
+
     if yes {
         handleSync()
     }
-
-    out, _ := exec.Command("git", "commit", "-m", message).Output()
-    fmt.Print(string(out))
 }
 
 func checkFiles(files []string) string {
