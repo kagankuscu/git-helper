@@ -16,6 +16,7 @@ var (
     all bool
     files []string
     message string
+    yes bool
 )
 // commitCmd represents the commit command
 var commitCmd = &cobra.Command{
@@ -30,6 +31,7 @@ func init() {
     commitCmd.Flags().BoolVarP(&all, "all", "a", false, "Commit all files")
     commitCmd.Flags().StringSliceVarP(&files, "file", "f", []string{}, "File to commit")
     commitCmd.Flags().StringVarP(&message, "message", "m", "", "Commit message")
+    commitCmd.Flags().BoolVarP(&yes, "yes", "y", false, "Push to remote")
 
 	rootCmd.AddCommand(commitCmd)
 }
@@ -49,6 +51,10 @@ func handleCommit() {
     } else {
         fmt.Println("You must either specify --all or --file to add files.")
         os.Exit(1)
+    }
+
+    if yes {
+        handleSync()
     }
 
     out, _ := exec.Command("git", "commit", "-m", message).Output()
