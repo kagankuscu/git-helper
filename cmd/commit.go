@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"git-helper/ui/commit/list-files"
 	"git-helper/ui/commit/textInput"
+    "git-helper/utils"
 	"os"
 	"os/exec"
 	"strings"
@@ -60,7 +61,7 @@ func handleCommit() {
     } 
 
     if file {
-        fOut, errOut := exec.Command("git", "ls-files", "-o", "-m").Output()
+        fOut, errOut := exec.Command("git", "ls-files", utils.GetGitDirectory(), "-o", "-m").Output()
         if errOut != nil {
             color.Red("Error: %v", errOut)
             return
