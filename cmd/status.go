@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+    "git-helper/utils"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
@@ -36,7 +37,7 @@ func init() {
 
 func handleStatus() {
     if tracked {
-        out, err := exec.Command("git", "ls-files").Output()
+        out, err := exec.Command("git", "ls-files", utils.GetGitDirectory()).Output()
         if err != nil {
             fmt.Println("Error: ", err)
             return
@@ -44,7 +45,7 @@ func handleStatus() {
         fmt.Println("Tracked files:")
         fmt.Print(string(out))
     } else if modified {
-        out, err := exec.Command("git", "ls-files", "-m").Output()
+        out, err := exec.Command("git", "ls-files", utils.GetGitDirectory(), "-m").Output()
         if err != nil {
             fmt.Println("Error: ", err)
             return
@@ -52,7 +53,7 @@ func handleStatus() {
         fmt.Println("Modified files:")
         fmt.Print(string(out))
     } else if untracked {
-        out, err := exec.Command("git", "ls-files", "-o").Output()
+        out, err := exec.Command("git", "ls-files", utils.GetGitDirectory(), "-o", "--exclude-standard").Output()
         if err != nil {
             fmt.Println("Error: ", err)
             return
