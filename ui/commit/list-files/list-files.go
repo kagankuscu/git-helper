@@ -15,10 +15,11 @@ type model struct {
 
 type Output struct {
     Output []string
+    Selected []string
 }
 
 func (o *Output) update(val []string) {
-    o.Output = val
+    o.Selected = val
 }
 
 func InitialListFiles(output *Output, header string) model {

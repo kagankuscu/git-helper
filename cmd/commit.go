@@ -61,12 +61,11 @@ func handleCommit() {
 	}
 
 	if file {
-		fOut, errOut := exec.Command("git", "ls-files", utils.GetGitDirectory(), "-o", "-m", "--exclude-standard").Output()
+		fOut, errOut := exec.Command("git", "ls-files", utils.GetGitDirectory(), "-o", "-m", "--exclude-standard").CombinedOutput()
 		if errOut != nil {
 			color.Red("Error: %v", errOut.Error())
 			return
 		}
-
 		files := strings.Split(strings.TrimSpace(string(fOut)), "\n")
 		option.files = &listfiles.Output{Output: files}
 
@@ -76,18 +75,27 @@ func handleCommit() {
 			os.Exit(1)
 		}
 
-		fmt.Printf("Adding file%s: %s\n", checkFiles(option.files.Output), strings.Join(option.files.Output, ", "))
-		exec.Command("git", append([]string{"add"}, option.files.Output...)...).Run()
+        if len(option.files.Selected) == 0 {
+            os.Exit(1)
+        }
+
+		fmt.Printf("Adding file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
+		exec.Command("git", append([]string{"add"}, option.files.Selected...)...).Run()
 
 		p := tea.NewProgram(textInput.InitialModel(option.commitMessage, "Enter a good commit message:"), tea.WithAltScreen())
 		if _, err := p.Run(); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
+
+        if option.commitMessage.Output == "" {
+            fmt.Printf("Restore file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
+            exec.Command("git", append([]string{"restore", "--staged"}, option.files.Selected...)...).Run()
+            os.Exit(1)
+        }
 	}
 
 	var msg string
-	fmt.Println("meesage: ", message)
 	if message != "" {
 		msg = message
 	} else {

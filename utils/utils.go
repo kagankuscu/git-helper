@@ -10,10 +10,10 @@ func GetGitDirectory() string {
     out, err := exec.Command("git", "rev-parse", "--git-dir").Output()
     CheckError(err)
 
-    gitFile := string(out)
+    gitFile := strings.TrimSpace(string(out))
     splited := strings.Split(gitFile, ".")
     dir := splited[0]
-    if len(splited) > 1 {
+    if dir == "" {
         dir = "."
     }
     return dir
