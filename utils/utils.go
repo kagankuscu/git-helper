@@ -11,7 +11,11 @@ func GetGitDirectory() string {
     CheckError(err)
 
     gitFile := string(out)
-    dir := strings.Split(gitFile, ".")[0]
+    splited := strings.Split(gitFile, ".")
+    dir := splited[0]
+    if len(splited) > 1 {
+        dir = "."
+    }
     return dir
 }
 
