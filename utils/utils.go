@@ -24,3 +24,7 @@ func CheckError(err error) {
         fmt.Println("Error:", err)
     }
 }
+
+func RemoveIndex[T any](slice []T, s int) []T {
+    return append(slice[:s], slice[s+1:]...)
+} 
