@@ -5,9 +5,12 @@ package cmd
 
 import (
 	"fmt"
+	"git-helper/ui/switchBranch"
+	"os"
 	"os/exec"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
@@ -26,6 +29,7 @@ var branchCmd = &cobra.Command{
     ValidArgs: availableSubCommands,
 	Run: func(cmd *cobra.Command, args []string) {
         fmt.Printf("Use a subcommand: %s\n", strings.Join(availableSubCommands, ", "))
+
 	},
 }
 
@@ -48,22 +52,18 @@ var createBranchCmd = &cobra.Command{
 }
 
 var switchBranchCmd = &cobra.Command{
-    Use: "switch [branch_name]",
+    Use: "switch",
     Short: "Switch to another branch",
-    Args: cobra.ExactArgs(1),
     Run: func(cmd *cobra.Command, args []string) {
-        branchName := args[0]
-        handleSwitchCommand(branchName)
+        handleSwitchCommand()
     },
 }
 
 var deleteBranchCmd = &cobra.Command{
-    Use: "delete [branch_name]",
+    Use: "delete",
     Short: "Delete a branch",
-    Args: cobra.ExactArgs(1),
     Run: func(cmd *cobra.Command, args []string) {
-        branchName := args[0]
-        handleDeleteCommand(branchName)
+        handleDeleteCommand()
     },
 }
 
@@ -94,22 +94,26 @@ func handleCreateCommand(branchName string) {
     fmt.Printf("Switched to a new branch '%s'\n", green(branchName))
 }
 
-func handleSwitchCommand(branchName string) {
-    err := exec.Command("git", "checkout", branchName).Run()
-    if err != nil {
-        fmt.Println("Error: ", err)
-        return
+func handleSwitchCommand() {
+    option := switchBranch.Option{
+        Title: "Switch Branch",
+        Mode: "switch",
     }
-    yellow := color.New(color.FgYellow).SprintFunc()
-    fmt.Printf("Switched to branch '%s'\n", yellow(branchName))
+    p := tea.NewProgram(switchBranch.InitialModel(option), tea.WithAltScreen())
+    if _, err := p.Run(); err != nil {
+        fmt.Println("Error:", err)
+        os.Exit(1)
+    }
 }
 
-func handleDeleteCommand(branchName string) {
-    out, err := exec.Command("git", "branch", "-D", branchName).CombinedOutput()
-    if err != nil {
-        fmt.Print(string(out))
-        return
+func handleDeleteCommand() {
+    option := switchBranch.Option{
+        Title: "Delete Branch",
+        Mode: "delete",
     }
-    red := color.New(color.FgRed).SprintFunc()
-    fmt.Printf("Deleted branch '%s'\n", red(branchName))
+    p := tea.NewProgram(switchBranch.InitialModel(option), tea.WithAltScreen())
+    if _, err := p.Run(); err != nil {
+        fmt.Println("Error:", err)
+        os.Exit(1)
+    }
 }

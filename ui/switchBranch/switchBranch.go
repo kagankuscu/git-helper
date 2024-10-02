@@ -23,14 +23,20 @@ var (
 
 type tickMsg time.Time
 
+type Option struct {
+    Title string
+    Mode string
+}
+
 type model struct {
 	cursor   int
 	choices  []string
 	choice string
     current string
+    option Option
 }
 
-func InitialModel() model {
+func InitialModel(option Option) model {
     out, err := exec.Command("git", "branch").Output()
     utils.CheckError(err)
 
@@ -48,11 +54,12 @@ func InitialModel() model {
 	return model{
 		choices: branches,
         current: current,
+        option: option,
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return tea.SetWindowTitle("Switch Branch")
+	return tea.SetWindowTitle(m.option.Title)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -73,8 +80,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
             return m, nil
         case "enter":
 		    m.choice = m.choices[m.cursor]	
-            err := exec.Command("git", "checkout", m.choice).Run()
-            utils.CheckError(err)
+
+            switch m.option.Mode {
+            case "switch":
+                err := exec.Command("git", "checkout", m.choice).Run()
+                utils.CheckError(err)
+            case "delete":
+                err := exec.Command("git", "branch", "-D", m.choice).Run()
+                utils.CheckError(err)
+            }
+
             return m, tick
 		}
     case tickMsg:
@@ -86,10 +101,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m model) View() string {
     if m.choice != "" {
-        return "Switched to branch " + fmt.Sprintf("'%s'\n", currentBranchStyle.Render(m.choice))
+        switch m.option.Mode {
+            case "switch":
+                return "Switched to branch " + fmt.Sprintf("'%s'\n", currentBranchStyle.Render(m.choice))
+            case "delete":
+                return fmt.Sprintf("Deleted branch '%s'\n", lipgloss.NewStyle().Foreground(lipgloss.Color("#8B0001")).Render(m.choice))
+        }
     }
 
-	s := "Choose branch you want to switch.\n"
+	s := fmt.Sprintf("Choose branch you want to %s.\n", m.option.Mode)
     s += "Current branch: " + currentBranchStyle.Render(m.current) + "\n\n"
 
 	for i, choice := range m.choices {
@@ -109,6 +129,6 @@ func (m model) View() string {
 }
 
 func tick() tea.Msg {
-    time.Sleep(2 * time.Second)
+    time.Sleep(1 * time.Second)
     return tickMsg{}
 }
