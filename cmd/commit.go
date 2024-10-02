@@ -6,7 +6,6 @@ package cmd
 import (
 	"fmt"
 	listfiles "git-helper/ui/commit/list-files"
-	"git-helper/ui/commit/textInput"
 	"git-helper/utils"
 	"os"
 	"os/exec"
@@ -25,7 +24,6 @@ var (
 )
 
 type Options struct {
-	commitMessage *textInput.Output
 	files         *listfiles.Output
 }
 
@@ -51,9 +49,7 @@ func init() {
 }
 
 func handleCommit() {
-	option := Options{
-		commitMessage: &textInput.Output{},
-	}
+	option := Options{}
 
 	if all {
 		fmt.Println("Commiting all files...")
@@ -76,22 +72,18 @@ func handleCommit() {
 		}
 
         if len(option.files.Selected) == 0 {
+            fmt.Println("Please select file.")
             os.Exit(1)
         }
 
-		fmt.Printf("Adding file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
+		color.Green("Adding file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
 		exec.Command("git", append([]string{"add"}, option.files.Selected...)...).Run()
 
-		p := tea.NewProgram(textInput.InitialModel(option.commitMessage, "Enter a good commit message:"), tea.WithAltScreen())
-		if _, err := p.Run(); err != nil {
-			fmt.Println("Error:", err)
-			os.Exit(1)
-		}
-
-        if option.commitMessage.Output == "" {
-            fmt.Printf("Restore file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
-            exec.Command("git", append([]string{"restore", "--staged"}, option.files.Selected...)...).Run()
-            os.Exit(1)
+        if option.files.Message == "" {
+           color.Yellow("Restore file%s: %s\n", checkFiles(option.files.Selected), strings.Join(option.files.Selected, ", "))
+           fmt.Println("Please add commit message.")
+           exec.Command("git", append([]string{"restore", "--staged"}, option.files.Selected...)...).Run()
+           os.Exit(1)
         }
 	}
 
@@ -99,7 +91,7 @@ func handleCommit() {
 	if message != "" {
 		msg = message
 	} else {
-		msg = option.commitMessage.Output
+		msg = option.files.Message
 	}
 
 	out, _ := exec.Command("git", "commit", "-m", msg).Output()
